@@ -27,6 +27,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Tetiklenen commit yerine main'in o anki hali: sırada bekleyen çalışma,
+          # bir önceki çalışmanın kaydettiği hikâyeleri görsün ve aynılarını yeniden üretmesin.
+          ref: main
 
       - uses: actions/setup-node@v4
         with:
