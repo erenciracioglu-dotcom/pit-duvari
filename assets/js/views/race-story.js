@@ -56,12 +56,13 @@ export async function storyView(ctx, season, race) {
 
   const wrap = h('div', { class: 'stack' });
   // ozet karolari
-  const stops = story.pits?.length || 0;
+  // OpenF1'de pit verisi olmayan yarislarda (2023 basi) F1DB'nin resmi pit kayitlarina dus
+  const stops = story.pits?.length || race.pits?.length || 0;
   const fl = story.fl;
   const totalOt = Object.values(story.ot || {}).reduce((a, b) => a + b, 0);
   wrap.appendChild(h('div', { class: 'stats' },
     tile(N, L('tur', 'laps')),
-    tile(stops, L('pit stop', 'pit stops')),
+    stops ? tile(stops, L('pit stop', 'pit stops')) : null,
     tile((story.sc || []).filter((x) => x[0] === 'SC').length, L('güvenlik aracı', 'safety cars')),
     tile((story.sc || []).filter((x) => x[0] === 'VSC').length, L('sanal güvenlik aracı', 'virtual SC')),
     totalOt ? tile(totalOt, L('sollama', 'overtakes')) : null,

@@ -6,7 +6,13 @@ let calls = 0;
 
 export async function of1(q) {
   calls++;
-  return http(BASE + q, { gap: 2100, timeout: 45000, retries: 4 });
+  try {
+    return await http(BASE + q, { gap: 2100, timeout: 45000, retries: 4 });
+  } catch (e) {
+    // OpenF1 sorguya uyan veri yoksa 404 doner (2023 basindaki yarislarda pit verisi gibi): bos liste say.
+    if (e?.status === 404) return [];
+    throw e;
+  }
 }
 export const of1Calls = () => calls;
 
