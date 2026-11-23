@@ -158,6 +158,28 @@ export async function repairTrack(story) {
       } catch { /* sonraki aday */ }
     }
   }
+  // Yaris seansinda konum verisi yoksa ayni hafta sonunun siralama / antrenman turundan ciz
+  try {
+    const mk = (await of1(`sessions?session_key=${story.sk}`))[0]?.meeting_key;
+    const ss = mk ? await of1(`sessions?meeting_key=${mk}`) : [];
+    for (const name of ['Qualifying', 'Practice 3', 'Practice 2', 'Practice 1', 'Sprint Qualifying']) {
+      const s = ss.find((x) => x.session_name === name);
+      if (!s) continue;
+      for (const [no] of drivers.slice(0, 2)) {
+        const laps = (await of1(`laps?session_key=${s.session_key}&driver_number=${no}`)).filter((l) => l.lap_duration && l.date_start && !l.is_pit_out_lap).sort((x, y) => x.lap_duration - y.lap_duration);
+        const lap = laps[0];
+        if (!lap) continue;
+        const start = Date.parse(lap.date_start);
+        const a = new Date(start).toISOString().replace('Z', '');
+        const b = new Date(start + lap.lap_duration * 1000).toISOString().replace('Z', '');
+        const loc = await of1(`location?session_key=${s.session_key}&driver_number=${no}&date>=${a}&date<${b}`).catch(() => []);
+        if (loc.length > 50) {
+          const step = Math.max(1, Math.floor(loc.length / 220));
+          return { pts: loc.filter((_, k) => k % step === 0).map((p) => [p.x, p.y, r3((Date.parse(p.date) - start) / (lap.lap_duration * 1000))]), no, lap: lap.lap_number, from: name };
+        }
+      }
+    }
+  } catch { /* vazgec */ }
   return null;
 }
 
