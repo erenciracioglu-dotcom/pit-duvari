@@ -17,14 +17,13 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pit-duvari
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: pit-duvari
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -85,9 +84,49 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    concurrency:
+      group: pit-duvari-deploy
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # GitHub'ın zamanlayıcısı yeni repolarda saatlerce, bazen hiç tetiklenmiyor.
+  # Bu iş "tick" ortamındaki bekleme süresi (25 dk) dolunca sıradaki çalışmayı başlatır.
+  # Bekleme sırasında makine ayrılmaz, dakika harcanmaz. Zamanlayıcı çalışmaya başlarsa
+  # zincir kendini durdurur; ortamda bekleme süresi yoksa hiç zincir kurmaz.
+  tick:
+    needs: deploy
+    if: ${{ !cancelled() && github.event_name != 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: tick
+    concurrency:
+      group: pit-duvari-tick
+      cancel-in-progress: true
+    permissions:
+      actions: write
+    steps:
+      - name: Sıradaki güncellemeyi başlat
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          now=$(date -u +%s)
+          last=$(gh api "repos/$REPO/actions/workflows/build.yml/runs?event=schedule&per_page=1" --jq '.workflow_runs[0].created_at // empty')
+          if [ -n "$last" ] && [ $(( now - $(date -u -d "$last" +%s) )) -lt 2700 ]; then
+            echo "GitHub zamanlayıcısı çalışıyor; zincire gerek yok."
+            exit 0
+          fi
+          started=$(gh api "repos/$REPO/actions/runs/$RUN_ID" --jq .run_started_at)
+          waited=$(( (now - $(date -u -d "$started" +%s)) / 60 ))
+          if [ "$waited" -lt 20 ]; then
+            echo "::warning::'tick' ortamında bekleme süresi yok (çalışma ${waited} dk önce başladı); zincir kurulmadı."
+            exit 0
+          fi
+          gh workflow run build.yml --repo "$REPO" --ref main
+          echo "Sıradaki güncelleme başlatıldı."
