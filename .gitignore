@@ -5,6 +5,7 @@ _site/
 data/*
 !data/stories/
 !data/reports/
+!data/results/
 *.log
 .DS_Store
 Thumbs.db

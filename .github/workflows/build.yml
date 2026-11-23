@@ -54,15 +54,15 @@ jobs:
           path: .cache
           key: pd-cache-${{ github.run_id }}
 
-      - name: Yeni yarış hikâyelerini repoya yaz
+      - name: Yeni yarış hikâyelerini ve sonuç özetlerini repoya yaz
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Zamanlanmış iş 60 gün işlem olmayınca durur: ayda bir küçük bir kayıt düş
           if [ "$(date -u +%d%H)" = "0103" ] && [ "$(date -u +%M)" -lt 30 ]; then date -u +%FT%TZ > .github/keepalive; git add .github/keepalive; fi
-          git add data/stories
+          git add data/stories data/results
           if ! git diff --cached --quiet; then
-            git commit -m "Veri: yeni yarış hikâyeleri"
+            git commit -m "Veri: yarış hikâyeleri ve sonuç özetleri"
             git pull --rebase --autostash origin main && git push origin HEAD:main || echo "push atlandı"
           fi
 

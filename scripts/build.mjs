@@ -105,6 +105,24 @@ async function main() {
   if (next) writeJson(path.join(OUT, 'season', `${curYear + 1}.json`), next);
   writeJson(path.join(OUT, 'ref.json'), ref);
 
+  // 3b) Biten yarislarin ozet dosyalari (repoda saklanir; yaris raporu gorevi bunlari okur)
+  const RESULTS = path.join(ROOT, 'data', 'results');
+  for (const race of cur.races) {
+    if (!race.res?.length) continue;
+    const file = path.join(RESULTS, `${curYear}-${race.r}.json`);
+    const nextRace = cur.races.find((r) => r.r > race.r) || next?.races?.[0] || null;
+    const doc = {
+      year: curYear, round: race.r, gp: race.gp, gpName: ref.gps[race.gp]?.n, circuit: race.c, circuitName: ref.circuits[race.c]?.fn, date: race.date,
+      src: race.src || 'f1db', laps: race.laps, res: race.res, q: race.q || null, spr: race.spr || null, fl: race.fl || null, dotd: race.dotd || null,
+      standings: standingsOf(race), drivers: Object.fromEntries([...new Set([...(race.res || []), ...(race.q || [])].map((x) => x.d))].map((d) => [d, ref.drivers[d]?.n || d])),
+      teams: Object.fromEntries([...new Set((race.res || []).map((x) => x.t))].map((t) => [t, ref.constructors[t]?.n || t])),
+      next: nextRace ? { gp: nextRace.gp, gpName: ref.gps[nextRace.gp]?.n, date: nextRace.date } : null,
+      totalRounds: cur.races.length
+    };
+    const text = JSON.stringify(doc);
+    if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== text) { fs.mkdirSync(RESULTS, { recursive: true }); fs.writeFileSync(file, text); }
+  }
+
   // 4) Yaris hikayeleri (OpenF1, 2023+)
   if (!A['no-stories']) {
     const budget = Number(A['stories-budget'] ?? 6);
@@ -148,6 +166,10 @@ async function main() {
   meta.buildSeconds = Math.round((Date.now() - tStart) / 1000);
   writeJson(path.join(OUT, 'meta.json'), meta, true);
   log('Bitti:', `${meta.buildSeconds} sn`, `OpenF1 istegi: ${meta.openf1Calls}`);
+}
+
+function standingsOf(race) {
+  return { d: race.sd || null, c: race.sc || null };
 }
 
 main().catch((e) => {
