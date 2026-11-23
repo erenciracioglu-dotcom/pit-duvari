@@ -132,11 +132,39 @@ export async function buildStory(race, meeting, year) {
   const ot = {};
   for (const o of overtakes) ot[o.overtaking_driver_number] = (ot[o.overtaking_driver_number] || 0) + 1;
 
-  return {
+  const story = {
     v: 1, year, round: race.r, sk, t0: new Date(t0).toISOString(), laps: maxLap,
     drv, lap: lapRows, st, pits, ev: events, sc, wx, fl, trk, ot, tl,
     cols: { lap: ['dur', 's1', 's2', 's3', 'pitOut', 'end'], st: ['no', 'stint', 'from', 'to', 'compound', 'age'], pits: ['no', 'lap', 'lane', 'stop'], ev: ['lap', 'kind', 'msg', 't', 'no'], sc: ['kind', 'fromLap', 'toLap', 'tFrom', 'tTo'] }
   };
+  trimToLaps(story, raceLaps(story, race));
+  return story;
+}
+
+// OpenF1 bazen damali bayraktan sonraki bos turu da listeler (yalniz kazananda, suresiz).
+// Hikayenin tur sayisi resmi sonuctaki kazananin tur sayisidir; sonuc yoksa suresi olan son tur.
+export function raceLaps(story, race) {
+  const official = (race?.res || []).find((x) => x.pn === 1)?.l;
+  if (official) return official;
+  let last = 0;
+  for (const rows of Object.values(story.lap || {})) rows.forEach((r, i) => { if (r && (r[0] != null || r[5] != null)) last = Math.max(last, i + 1); });
+  return last || story.laps;
+}
+
+export function trimToLaps(story, N) {
+  if (!N) return false;
+  let changed = false;
+  if (story.laps > N) { story.laps = N; changed = true; }
+  for (const no of Object.keys(story.lap || {})) if (story.lap[no].length > N) { story.lap[no] = story.lap[no].slice(0, N); changed = true; }
+  const st = [];
+  for (const x of story.st || []) {
+    if (x[2] > N) { changed = true; continue; }
+    if (x[3] > N) { st.push([x[0], x[1], x[2], N, x[4], x[5]]); changed = true; } else st.push(x);
+  }
+  story.st = st;
+  for (const e of story.ev || []) if (e[0] > N) { e[0] = N; changed = true; }
+  for (const x of story.sc || []) { if (x[1] > N) { x[1] = N; changed = true; } if (x[2] > N) { x[2] = N; changed = true; } }
+  return changed;
 }
 
 // Pist cizgisi eksik kalmis hikayeyi onar: kayitli tur zamanlarindan temiz bir tur secip konum verisini yeniden ister
@@ -199,6 +227,18 @@ export async function buildStories({ seasons, years, dir, budget = 6, now = Date
       const trk = await repairTrack(st).catch(() => null);
       if (trk) { st.trk = trk; delete st.trkTried; log('Pist cizgisi onarildi:', f); } else st.trkTried = (st.trkTried || 0) + 1;
       writeJson(file, st);
+    }
+  }
+  // mevcut hikayelerde damadan sonraki bos turu kirp (API cagrisi gerektirmez)
+  if (fs.existsSync(dir)) {
+    for (const f of fs.readdirSync(dir).filter((x) => /^\d{4}-\d+\.json$/.test(x))) {
+      const [y, r] = f.replace('.json', '').split('-').map(Number);
+      const race = seasons[y]?.races?.find((x) => x.r === r);
+      if (!race) continue;
+      const file = path.join(dir, f);
+      let st;
+      try { st = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { continue; }
+      if (trimToLaps(st, raceLaps(st, race))) { writeJson(file, st); log('Fazladan tur kirpildi:', f); }
     }
   }
   for (const year of years) {
