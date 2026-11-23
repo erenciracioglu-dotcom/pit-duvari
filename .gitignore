@@ -1,0 +1,10 @@
+node_modules/
+.cache/
+_site/
+# Uretilen veri (GitHub Actions her calismada yeniden uretir). Yaris hikayeleri ve statik dosyalar repoda kalir.
+data/*
+!data/stories/
+!data/reports/
+*.log
+.DS_Store
+Thumbs.db

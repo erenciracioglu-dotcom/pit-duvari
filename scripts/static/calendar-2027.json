@@ -1,0 +1,31 @@
+{
+  "year": 2027,
+  "source": "FIA / Formula 1, 16 Eylül 2026 duyurusu. Seans saatleri açıklanınca F1DB, OpenF1 veya Jolpica'dan otomatik dolar.",
+  "testing": { "start": "2027-02-24", "end": "2027-02-27", "circuit": "bahrain" },
+  "races": [
+    { "r": 1, "gp": "bahrain", "c": "bahrain", "start": "2027-03-12", "date": "2027-03-14", "sprint": true },
+    { "r": 2, "gp": "saudi-arabia", "c": "jeddah", "start": "2027-03-19", "date": "2027-03-21", "sprint": false },
+    { "r": 3, "gp": "australia", "c": "melbourne", "start": "2027-04-02", "date": "2027-04-04", "sprint": true },
+    { "r": 4, "gp": "japan", "c": "suzuka", "start": "2027-04-09", "date": "2027-04-11", "sprint": true },
+    { "r": 5, "gp": "china", "c": "shanghai", "start": "2027-04-16", "date": "2027-04-18", "sprint": false },
+    { "r": 6, "gp": "miami", "c": "miami", "start": "2027-04-30", "date": "2027-05-02", "sprint": false },
+    { "r": 7, "gp": "canada", "c": "montreal", "start": "2027-05-21", "date": "2027-05-23", "sprint": true },
+    { "r": 8, "gp": "monaco", "c": "monaco", "start": "2027-06-04", "date": "2027-06-06", "sprint": true },
+    { "r": 9, "gp": "portugal", "c": "portimao", "start": "2027-06-18", "date": "2027-06-20", "sprint": false },
+    { "r": 10, "gp": "great-britain", "c": "silverstone", "start": "2027-07-02", "date": "2027-07-04", "sprint": true },
+    { "r": 11, "gp": "austria", "c": "spielberg", "start": "2027-07-09", "date": "2027-07-11", "sprint": false },
+    { "r": 12, "gp": "belgium", "c": "spa-francorchamps", "start": "2027-07-23", "date": "2027-07-25", "sprint": false },
+    { "r": 13, "gp": "hungary", "c": "hungaroring", "start": "2027-07-30", "date": "2027-08-01", "sprint": false },
+    { "r": 14, "gp": "italy", "c": "monza", "start": "2027-09-03", "date": "2027-09-05", "sprint": true },
+    { "r": 15, "gp": "spain", "c": "madring", "start": "2027-09-10", "date": "2027-09-12", "sprint": false },
+    { "r": 16, "gp": "azerbaijan", "c": "baku", "start": "2027-09-24", "date": "2027-09-26", "sprint": false },
+    { "r": 17, "gp": "turkey", "c": "istanbul", "start": "2027-10-01", "date": "2027-10-03", "sprint": false },
+    { "r": 18, "gp": "singapore", "c": "marina-bay", "start": "2027-10-08", "date": "2027-10-10", "sprint": false },
+    { "r": 19, "gp": "united-states", "c": "austin", "start": "2027-10-22", "date": "2027-10-24", "sprint": false },
+    { "r": 20, "gp": "mexico", "c": "mexico-city", "start": "2027-10-29", "date": "2027-10-31", "sprint": false },
+    { "r": 21, "gp": "sao-paulo", "c": "interlagos", "start": "2027-11-05", "date": "2027-11-07", "sprint": true },
+    { "r": 22, "gp": "las-vegas", "c": "las-vegas", "start": "2027-11-18", "date": "2027-11-20", "sprint": false },
+    { "r": 23, "gp": "qatar", "c": "lusail", "start": "2027-12-03", "date": "2027-12-05", "sprint": true },
+    { "r": 24, "gp": "abu-dhabi", "c": "yas-marina", "start": "2027-12-10", "date": "2027-12-12", "sprint": true }
+  ]
+}

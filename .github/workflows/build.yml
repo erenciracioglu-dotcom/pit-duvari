@@ -1,0 +1,89 @@
+name: Veri ve yayın
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # her 30 dakikada bir (yoğun :00 ve :30 dakikalarından kaçınarak)
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+    inputs:
+      stories_budget:
+        description: Bu çalışmada en fazla kaç yarış hikâyesi üretilsin
+        default: '8'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pit-duvari
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Önbelleği geri yükle
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache
+          key: pd-cache-${{ github.run_id }}
+          restore-keys: pd-cache-
+
+      - name: Veriyi üret
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/build.mjs --out=_site/data --stories-budget=${{ github.event.inputs.stories_budget || '8' }}
+
+      - name: Önbelleği kaydet
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .cache
+          key: pd-cache-${{ github.run_id }}
+
+      - name: Yeni yarış hikâyelerini repoya yaz
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Zamanlanmış iş 60 gün işlem olmayınca durur: ayda bir küçük bir kayıt düş
+          if [ "$(date -u +%d%H)" = "0103" ] && [ "$(date -u +%M)" -lt 30 ]; then date -u +%FT%TZ > .github/keepalive; git add .github/keepalive; fi
+          git add data/stories
+          if ! git diff --cached --quiet; then
+            git commit -m "Veri: yeni yarış hikâyeleri"
+            git pull --rebase --autostash origin main && git push origin HEAD:main || echo "push atlandı"
+          fi
+
+      - name: Siteyi topla
+        run: |
+          for f in index.html sw.js manifest.webmanifest 404.html robots.txt; do if [ -f "$f" ]; then cp "$f" _site/; fi; done
+          if [ -d assets ]; then cp -r assets _site/; fi
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
