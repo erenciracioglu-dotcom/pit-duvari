@@ -14,7 +14,7 @@ export function score(pred, race, story) {
   const out = { total: 0, parts: [] };
   const addp = (k, v, ok) => { out.parts.push({ k, v, ok }); if (ok) out.total += v; };
   const res = race.res;
-  const pole = race.q?.[0]?.d || res.find((x) => x.pole)?.d;
+  const pole = res.find((x) => x.pole)?.d || race.q?.[0]?.d; // resmi pole: gridin ilk sirasi (ceza sonrasi)
   if (pred.pole) addp('pole', RULES.pole, pred.pole === pole);
   const top3 = [1, 2, 3].map((n) => res.find((x) => x.pn === n)?.d);
   ['p1', 'p2', 'p3'].forEach((k, i) => {

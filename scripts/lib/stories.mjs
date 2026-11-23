@@ -127,6 +127,8 @@ export async function buildStory(race, meeting, year) {
     log('pist cizgisi alinamadi', year, race.r, e.message);
   }
 
+  if (!trk) trk = await repairTrack({ t0: new Date(t0).toISOString(), lap: lapRows, sk }).catch(() => null);
+
   const ot = {};
   for (const o of overtakes) ot[o.overtaking_driver_number] = (ot[o.overtaking_driver_number] || 0) + 1;
 
@@ -137,9 +139,46 @@ export async function buildStory(race, meeting, year) {
   };
 }
 
+// Pist cizgisi eksik kalmis hikayeyi onar: kayitli tur zamanlarindan temiz bir tur secip konum verisini yeniden ister
+export async function repairTrack(story) {
+  const t0 = Date.parse(story.t0);
+  const drivers = Object.entries(story.lap).sort((a, b) => b[1].length - a[1].length);
+  for (const [no, rows] of drivers.slice(0, 3)) {
+    const cands = rows.map((r, i) => ({ i, r })).filter(({ i, r }) => i > 0 && r[0] && !r[4] && !rows[i + 1]?.[4] && rows[i - 1]?.[5] != null).sort((a, b) => a.r[0] - b.r[0]).slice(0, 3);
+    for (const c of cands) {
+      const start = t0 + rows[c.i - 1][5] * 1000;
+      const a = new Date(start).toISOString().replace('Z', '');
+      const b = new Date(start + c.r[0] * 1000).toISOString().replace('Z', '');
+      try {
+        const loc = await of1(`location?session_key=${story.sk}&driver_number=${no}&date>=${a}&date<${b}`);
+        if (loc.length > 50) {
+          const step = Math.max(1, Math.floor(loc.length / 220));
+          return { pts: loc.filter((_, k) => k % step === 0).map((p) => [p.x, p.y, r3((Date.parse(p.date) - start) / (c.r[0] * 1000))]), no, lap: c.i + 1 };
+        }
+      } catch { /* sonraki aday */ }
+    }
+  }
+  return null;
+}
+
 export async function buildStories({ seasons, years, dir, budget = 6, now = Date.now() }) {
   let made = 0;
   const errors = [];
+  // once eksik pist cizgilerini onar (her calismada en fazla 4)
+  let repairs = 0;
+  if (fs.existsSync(dir)) {
+    for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.json')).sort().reverse()) {
+      if (repairs >= 4) break;
+      const file = path.join(dir, f);
+      let st;
+      try { st = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { continue; }
+      if (st.trk || st.trkTried >= 3) continue;
+      repairs++;
+      const trk = await repairTrack(st).catch(() => null);
+      if (trk) { st.trk = trk; delete st.trkTried; log('Pist cizgisi onarildi:', f); } else st.trkTried = (st.trkTried || 0) + 1;
+      writeJson(file, st);
+    }
+  }
   for (const year of years) {
     const season = seasons[year];
     if (!season) continue;
