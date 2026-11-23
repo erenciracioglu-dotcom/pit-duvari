@@ -10,8 +10,18 @@ import { qrcode } from '../../vendor/qrcode.mjs';
 
 const TZS = ['Europe/Istanbul', 'Europe/London', 'Europe/Berlin', 'Europe/Moscow', 'Asia/Almaty', 'Asia/Dubai', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo', 'Australia/Sydney'];
 
-function teamPicker(ctx, value, onPick) {
+// guncel kadro, sampiyonadaki siraya gore
+function orderedLineup(ctx) {
   const lineup = data.lineup(ctx.ref, ctx.cur);
+  const st = data.latestStandings(ctx.cur);
+  const cPos = new Map(st.c.map(([t, p]) => [t, p]));
+  const dPos = new Map(st.d.map(([d, p]) => [d, p]));
+  return new Map([...lineup.entries()].sort((a, b) => (cPos.get(a[0]) || 99) - (cPos.get(b[0]) || 99))
+    .map(([t, ds]) => [t, ds.slice().sort((a, b) => (dPos.get(a) || 99) - (dPos.get(b) || 99))]));
+}
+
+function teamPicker(ctx, value, onPick) {
+  const lineup = orderedLineup(ctx);
   const wrap = h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px' } });
   const render = (v) => {
     clear(wrap);
@@ -28,7 +38,7 @@ function teamPicker(ctx, value, onPick) {
 }
 
 function driverPicker(ctx, values, onChange) {
-  const lineup = data.lineup(ctx.ref, ctx.cur);
+  const lineup = orderedLineup(ctx);
   const sel = new Set(values);
   const wrap = h('div', { class: 'row wrap', style: { gap: '6px' } });
   const render = () => {

@@ -499,3 +499,10 @@ a.li:hover .li-t { text-decoration: underline; text-decoration-color: var(--line
   .board .track { width: 150px; height: 150px; top: 12px; right: 4px; opacity: 0.4; }
   .board .gp { padding-right: 90px; }
 }
+
+[hidden] { display: none !important; }
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+  .stat .v { font-size: 1.55rem; }
+  .stat { padding: 9px 10px; }
+}

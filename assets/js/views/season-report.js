@@ -53,7 +53,7 @@ export async function render(root, ctx) {
 
   // ust bolum
   const hero = h('section', { class: 'board', style: { gap: '10px' } }, h('div', { class: 'info' },
-    h('div', { class: 'when' }, season.champion?.d && done ? L('Dünya şampiyonu', 'World champion') : L('Şampiyona lideri', 'Championship leader')),
+    h('div', { class: 'when' }, season.champion?.d === champ[0] ? L('Dünya şampiyonu', 'World champion') : L('Şampiyona lideri', 'Championship leader')),
     h('h2', { class: 't-display', style: { fontSize: 'clamp(2.4rem, 8vw, 4.4rem)', marginTop: '10px' } }, driverName(ref, champ[0])),
     h('div', { class: 'circ row wrap' }, flag(ref, ref.drivers[champ[0]]?.nat), teamName(ref, tOf(champ[0])), h('span', { class: 'dim' }, `${fmtPts(champ[2])} ${L('puan', 'pts')}`), st.d[1] ? h('span', { class: 'dim' }, L(`en yakın rakibi ${driverName(ref, st.d[1][0])}, ${fmtPts(champ[2] - st.d[1][2])} puan geride`, `${fmtPts(champ[2] - st.d[1][2])} pts clear of ${driverName(ref, st.d[1][0])}`)) : null),
     decider ? h('p', { class: 'circ' }, L('Şampiyonluk ', 'Title decided at the '), h('a', { href: raceHref(year, decider.r) }, gpName(ref, decider.gp)), L(' yarışında kesinleşti.', '.')) : null));

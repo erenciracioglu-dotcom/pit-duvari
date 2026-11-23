@@ -140,7 +140,7 @@ export function modal(title, body, { actions = [], onClose } = {}) {
   const bg = h('div', { class: 'modal-bg', onClick: (e) => { if (e.target === bg) close(); } }, box);
   document.body.appendChild(bg);
   document.addEventListener('keydown', onKey);
-  setTimeout(() => box.querySelector('button, select, input, textarea, a')?.focus(), 30);
+  setTimeout(() => (box.querySelector('.mt button, .mt select, .mt input, .mt textarea, .mt a') || box.querySelector('button'))?.focus({ preventScroll: true }), 30);
   return { close, box };
 }
 
