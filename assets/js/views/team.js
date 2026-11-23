@@ -1,6 +1,6 @@
 // Takim sayfasi
 import { h, fmtPts, add } from '../core/util.js';
-import { L, driverName, teamName, countryName, nf } from '../core/i18n.js';
+import { L, driverName, countryName } from '../core/i18n.js';
 import * as data from '../core/data.js';
 import { teamColor } from '../core/colors.js';
 import { vhead, card, dchip, flag, footer, empty, icon } from '../core/ui.js';
@@ -50,6 +50,5 @@ export async function render(root, ctx) {
   const top = [...drvWins.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
   if (top.length) grid.appendChild(card(L('En çok kazandıranlar', 'Most wins for the team'), h('div', { class: 'list' }, top.map(([di, n]) => h('div', { class: 'li' }, dchip(ref, all.dr[di], { t: id }), h('span', { class: 'sp' }), h('strong', { class: 'num' }, n))))));
   add(root, grid, footer(meta));
-  void teamName; void nf; void fls;
 }
 const stat = (v, k) => h('div', { class: 'stat' }, h('div', { class: 'v' }, String(v)), h('div', { class: 'k' }, k));

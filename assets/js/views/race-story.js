@@ -1,12 +1,11 @@
 // Yarisin hikayesi: tur tur siralama, lidere fark, tur sureleri, lastik stratejisi, olaylar, pitler
-import { h, clear, msToLap, fmtPts } from '../core/util.js';
-import { L, driverName, teamName, tyreName, nf } from '../core/i18n.js';
+import { h, clear, msToLap } from '../core/util.js';
+import { L, driverName, tyreName, nf } from '../core/i18n.js';
 import * as data from '../core/data.js';
 import { teamColor } from '../core/colors.js';
 import { card, empty, dchip, seg } from '../core/ui.js';
 import { lineChart, chartCard, showTip, hideTip } from '../core/charts.js';
 import { TYRE } from '../core/names.js';
-import { resultValue } from './common.js';
 
 // Tur sonu zamanlarindan siralama ve lidere farki hesaplar
 export function computeLaps(story) {
@@ -165,15 +164,14 @@ function stintCard(story, dm, ordered) {
   return card(L('Lastik stratejisi', 'Tyre strategy'), h('div', {},
     h('div', { class: 'stints' }, rows, h('div', { class: 'scale' }, h('span'), h('div', { class: 'row' }, h('span', {}, '1'), h('span', { class: 'sp' }), h('span', {}, String(Math.round(N / 2))), h('span', { class: 'sp' }), h('span', {}, String(N))))),
     legend));
-  void pitByNo;
 }
 
-const EV = { sc: ['SC', 'bad'], vsc: ['VSC', ''], red: [L('Kırmızı', 'Red'), 'bad'], green: [L('Yeşil', 'Green'), 'pb'], chequered: [L('Bayrak', 'Flag'), ''], pen: [L('Ceza', 'Penalty'), 'bad'], inv: [L('İnceleme', 'Inquiry'), ''], info: [L('Bilgi', 'Info'), ''] };
+const EV = () => ({ sc: ['SC', 'bad'], vsc: ['VSC', ''], red: [L('Kırmızı', 'Red'), 'bad'], green: [L('Yeşil', 'Green'), 'pb'], chequered: [L('Bayrak', 'Flag'), ''], pen: [L('Ceza', 'Penalty'), 'bad'], inv: [L('İnceleme', 'Inquiry'), ''], info: [L('Bilgi', 'Info'), ''] });
 function eventsCard(story, dm) {
   const items = story.ev.filter((e) => e[1] !== 'chequered').slice(0, 60);
   return card(L('Yarış kontrol olayları', 'Race control'), h('div', { class: 'list' }, items.map(([lap, kind, msg, , no]) => h('div', { class: 'li', style: { alignItems: 'flex-start' } },
     h('span', { class: 'num dim', style: { width: '44px', flex: 'none' } }, lap ? L(`${lap}. tur`, `L${lap}`) : ''),
-    h('span', { class: ['badge', EV[kind]?.[1]], style: { flex: 'none' } }, EV[kind]?.[0] || kind),
+    h('span', { class: ['badge', EV()[kind]?.[1]], style: { flex: 'none' } }, EV()[kind]?.[0] || kind),
     h('span', { class: 't-small', style: { minWidth: 0 } }, prettyMsg(msg), no && dm[no] ? h('span', { class: 'dim' }, ` (${dm[no].code})`) : null)))),
   { actions: h('span', { class: 'dim t-small' }, L('Mesajlar FIA dilinde (İngilizce)', 'Messages as issued by the FIA')) });
 }
@@ -189,4 +187,3 @@ function pitsCard(story, dm, ref) {
       h('td', { class: 'n' }, lap), hasStop ? h('td', { class: ['n', i === 0 && 'best strong'] }, stop ? `${nf(stop, 1)} s` : '–') : null, h('td', { class: 'n' }, lane ? `${nf(lane, 1)} s` : '–')))))),
   { actions: h('span', { class: 'dim t-small' }, hasStop ? L('Mor: en hızlı duruş', 'Purple: quickest stop') : '') });
 }
-void fmtPts; void teamName; void seg; void resultValue;

@@ -42,7 +42,8 @@ async function main() {
     rel = { ...prev, stale: true };
   }
   meta.f1db = { tag: rel.tag, published: rel.published, stale: !!rel.stale };
-  const H = path.join(CACHE, 'hist', rel.tag);
+  const HIST_V = 2; // hist ciktisinin bicimi degisince artir (onbellegi gecersiz kilar)
+  const H = path.join(CACHE, 'hist', `${rel.tag}-p${HIST_V}`);
   let seasons = {};
   let ref;
   if (fs.existsSync(path.join(H, 'done.json')) && !A.rebuild) {

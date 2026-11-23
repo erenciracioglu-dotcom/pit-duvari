@@ -67,7 +67,8 @@ export function debounce(fn, ms = 150) {
 export function fmtPts(p) {
   if (p == null) return '0';
   const r = Math.round(p * 2) / 2;
-  return Number.isInteger(r) ? String(r) : r.toFixed(1);
+  const loc = document.documentElement.lang === 'en' ? 'en-GB' : 'tr-TR';
+  return r.toLocaleString(loc, { maximumFractionDigits: 1, useGrouping: Math.abs(r) >= 10000 });
 }
 
 export function lapToMs(s) {

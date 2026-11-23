@@ -3,7 +3,7 @@ import { h, fmtPts, isTimed } from '../core/util.js';
 import { L, gpName, sessionLabel, fmtTime, fmtDay, driverName, teamName, tzLabel, ordinalTr } from '../core/i18n.js';
 import * as data from '../core/data.js';
 import { teamColor } from '../core/colors.js';
-import { card, countdown, dchip, tchip, flag, icon, spoiler, spoilerActive, seg, footer, onCleanup } from '../core/ui.js';
+import { card, countdown, dchip, tchip, icon, spoiler, spoilerActive, seg, footer, onCleanup } from '../core/ui.js';
 import { raceHref, raceEndMs, resultValue, trackSvg, sessionList, circuitLine, icsModal } from './common.js';
 import { newsItem, spoilerCut } from './news.js';
 

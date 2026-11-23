@@ -1,6 +1,6 @@
 // Puan durumu: pilotlar / takimlar, tur tur grafik, sampiyonluk matematigi
-import { h, clear, fmtPts, add } from '../core/util.js';
-import { L, driverName, teamName, gpName, ordinalTr } from '../core/i18n.js';
+import { h, fmtPts, add } from '../core/util.js';
+import { L, driverName, teamName, gpName } from '../core/i18n.js';
 import * as data from '../core/data.js';
 import { teamColor } from '../core/colors.js';
 import { vhead, seg, dchip, tchip, card, spoilerActive, footer, icon } from '../core/ui.js';
@@ -99,7 +99,6 @@ function progTable(ref, prog, ids, kind, season) {
   return h('table', { class: 'tbl compact' },
     h('thead', {}, h('tr', {}, h('th', { class: 'sticky' }, ''), prog.races.map((r) => h('th', { class: 'n' }, r.r)))),
     h('tbody', {}, ids.map((id) => { const row = prog.rows.find((r) => r.id === id); return h('tr', {}, h('td', { class: 'sticky strong' }, kind === 'd' ? driverName(ref, id, 'code') : teamName(ref, id)), (row?.pts || []).map((v) => h('td', { class: 'n' }, v == null ? '–' : fmtPts(v)))); })));
-  void season;
 }
 
 function mathCard(ctx, season, list, remaining, kind) {
@@ -129,4 +128,3 @@ function mathCard(ctx, season, list, remaining, kind) {
     h('div', { class: 'list' }, rows),
     h('div', { class: 'mt' }, h('a', { class: 'btn sm', href: '#simulator' }, icon('sliders'), L('Kalan yarışları sen bitir', 'Finish the remaining races yourself')))));
 }
-void clear; void ordinalTr;

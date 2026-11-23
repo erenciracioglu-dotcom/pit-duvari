@@ -1,9 +1,9 @@
 // Pilot sayfasi: kariyer istatistikleri, sezon sezon, takim arkadaslari, bu sezonun sonuclari
 import { h, fmtPts, add } from '../core/util.js';
-import { L, driverName, teamName, gpName, countryName, fmtDate, nf, ordinalTr } from '../core/i18n.js';
+import { L, driverName, gpName, countryName, fmtDate, nf, ordinalTr } from '../core/i18n.js';
 import * as data from '../core/data.js';
 import { teamColor } from '../core/colors.js';
-import { vhead, card, dchip, tchip, flag, footer, empty, icon } from '../core/ui.js';
+import { vhead, card, tchip, flag, footer, empty, icon } from '../core/ui.js';
 import { lineChart, chartCard } from '../core/charts.js';
 import { raceHref } from './common.js';
 
@@ -129,4 +129,3 @@ export function seasonStrip(ctx, season, id) {
     me ? h('p', { class: 'muted', style: { marginTop: 0 } }, L(`Şampiyonada ${me[1]}. sırada, ${fmtPts(me[2])} puan.`, `${ordinalTr(me[1])} in the championship on ${fmtPts(me[2])} pts.`)) : null,
     h('div', { class: 'row wrap', style: { gap: '4px' } }, cells)));
 }
-void teamName; void dchip;

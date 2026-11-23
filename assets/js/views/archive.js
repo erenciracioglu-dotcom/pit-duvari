@@ -1,10 +1,10 @@
 // Arsiv: 1950'den bugune sezonlar, sezon ozeti, surucu arama
 import { h, clear, fmtPts, debounce, add } from '../core/util.js';
-import { L, driverName, teamName, gpName, fmtDay, countryName } from '../core/i18n.js';
+import { L, driverName, teamName, gpName, fmtDay } from '../core/i18n.js';
 import * as data from '../core/data.js';
 import { teamColor } from '../core/colors.js';
 import { vhead, card, dchip, tchip, flag, footer, empty, icon } from '../core/ui.js';
-import { raceHref, resultValue } from './common.js';
+import { raceHref } from './common.js';
 
 export async function render(root, ctx) {
   const year = Number(ctx.params[0]);
@@ -104,5 +104,4 @@ async function seasonView(root, ctx, year) {
   add(root, ...[champCard, h('div', { class: 'grid g-7-5' }, racesCard, h('div', { class: 'stack' }, dTable, cTable))].filter(Boolean),
     h('div', { class: 'row wrap mt' }, h('a', { class: 'btn', href: `#karne/${year}` }, icon('report'), L('Sezon karnesi', 'Season report')), h('a', { class: 'btn ghost', href: `#simulator/puan/${year}` }, icon('sliders'), L('Başka puan sistemiyle hesapla', 'Recalculate with another points system'))),
     footer(meta));
-  void resultValue; void countryName;
 }
