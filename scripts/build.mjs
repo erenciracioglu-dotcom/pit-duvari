@@ -99,7 +99,7 @@ async function main() {
 
   // 3) Gelecek sezon takvimi
   let next = seasons[curYear + 1] || null;
-  if (!next) next = await buildNextSeason(curYear + 1, STATIC, ref);
+  if (!next) next = await buildNextSeason(curYear + 1, STATIC, ref, { now });
   writeJson(path.join(OUT, 'season', `${curYear}.json`), cur);
   if (next) writeJson(path.join(OUT, 'season', `${curYear + 1}.json`), next);
   writeJson(path.join(OUT, 'ref.json'), ref);

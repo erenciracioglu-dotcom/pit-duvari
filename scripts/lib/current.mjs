@@ -169,8 +169,10 @@ export async function applyOverlay(season, ref, { now = Date.now() } = {}) {
   return info;
 }
 
-// Gelecek sezon: F1DB'de yoksa statik takvimden, saatler OpenF1 / Jolpica'dan
-export async function buildNextSeason(year, staticDir, ref) {
+// Gelecek sezon: F1DB'de yoksa statik takvimden, saatler OpenF1 / Jolpica'dan.
+// OpenF1 uzak hafta sonlari icin yer tutucu saatler yayinliyor (or. Singapur 14:00); bu yuzden
+// OpenF1 saatleri yalnizca 30 gun icindeki hafta sonlari icin kullanilir.
+export async function buildNextSeason(year, staticDir, ref, { now = Date.now() } = {}) {
   const file = path.join(staticDir, `calendar-${year}.json`);
   if (!fs.existsSync(file)) return null;
   const cal = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -193,6 +195,7 @@ export async function buildNextSeason(year, staticDir, ref) {
       for (const race of season.races) {
         const m = meetings.get(race.r);
         if (!m) continue;
+        if (Date.parse(race.start + 'T00:00:00Z') - now > 30 * 86400000) continue;
         for (const [k, s] of Object.entries(m.sessions)) race.s[k] = new Date(s.date_start).toISOString().replace('.000Z', 'Z');
         if (race.s.r?.includes('T')) race.time = race.s.r.slice(11, 16);
       }

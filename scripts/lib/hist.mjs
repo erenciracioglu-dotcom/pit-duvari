@@ -224,7 +224,12 @@ export function buildAllResults(load) {
     q.push([ri, idx(dm, dr, x.driverId), idx(tm, te, x.constructorId), x.positionNumber]);
   }
   q.sort((a, b) => a[0] - b[0] || a[3] - b[3]);
-  return { v: 1, races: R, gp, ci, dr, te, res, q, cols: { res: ['race', 'driver', 'team', 'pos', 'grid', 'pts2', 'flags', 'laps'], q: ['race', 'driver', 'team', 'pos'] } };
+  // sezon sonu sampiyona siralamalari
+  const sd = {}, sc = {};
+  for (const x of load('seasons-driver-standings')) (sd[x.year] ||= []).push([idx(dm, dr, x.driverId), x.positionNumber || 0, x.points, x.championshipWon ? 1 : 0]);
+  for (const x of load('seasons-constructor-standings')) (sc[x.year] ||= []).push([idx(tm, te, x.constructorId), x.positionNumber || 0, x.points, x.championshipWon ? 1 : 0]);
+  for (const o of [sd, sc]) for (const y of Object.keys(o)) o[y].sort((a, b) => (a[1] || 999) - (b[1] || 999));
+  return { v: 1, races: R, gp, ci, dr, te, res, q, sd, sc, cols: { res: ['race', 'driver', 'team', 'pos', 'grid', 'pts2', 'flags', 'laps'], q: ['race', 'driver', 'team', 'pos'], sd: ['driver', 'pos', 'pts', 'champion'] } };
 }
 
 const top = (arr, n = 15) => arr.slice(0, n);

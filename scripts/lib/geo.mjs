@@ -26,9 +26,10 @@ function simplify(pts, eps) {
     const [a, b] = stack.pop();
     let maxD = 0, idx = -1;
     const [ax, ay] = pts[a], [bx, by] = pts[b];
-    const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1;
+    const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy);
     for (let i = a + 1; i < b; i++) {
-      const d = Math.abs(dy * pts[i][0] - dx * pts[i][1] + bx * ay - by * ax) / len;
+      // kapali cizgide ilk ve son nokta ayni: dogru parcasi yerine noktaya uzaklik
+      const d = len < 1e-9 ? Math.hypot(pts[i][0] - ax, pts[i][1] - ay) : Math.abs(dy * pts[i][0] - dx * pts[i][1] + bx * ay - by * ax) / len;
       if (d > maxD) { maxD = d; idx = i; }
     }
     if (maxD > eps && idx > 0) { keep[idx] = 1; stack.push([a, idx], [idx, b]); }
