@@ -94,13 +94,14 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
 
-  # GitHub'ın zamanlayıcısı yeni repolarda saatlerce, bazen hiç tetiklenmiyor.
+  # GitHub'ın zamanlayıcısı yeni repolarda saatlerce gecikebiliyor ya da seyrek çalışıyor.
   # Bu iş "tick" ortamındaki bekleme süresi (25 dk) dolunca sıradaki çalışmayı başlatır.
-  # Bekleme sırasında makine ayrılmaz, dakika harcanmaz. Zamanlayıcı çalışmaya başlarsa
-  # zincir kendini durdurur; ortamda bekleme süresi yoksa hiç zincir kurmaz.
+  # Bekleme sırasında makine ayrılmaz, dakika harcanmaz. Bu arada daha yeni bir çalışma
+  # başladıysa (zamanlayıcı, push ya da elle) zinciri o sürdürür; ortamda bekleme süresi
+  # yoksa hiç zincir kurulmaz.
   tick:
     needs: deploy
-    if: ${{ !cancelled() && github.event_name != 'schedule' }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: tick
@@ -117,9 +118,9 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           now=$(date -u +%s)
-          last=$(gh api "repos/$REPO/actions/workflows/build.yml/runs?event=schedule&per_page=1" --jq '.workflow_runs[0].created_at // empty')
-          if [ -n "$last" ] && [ $(( now - $(date -u -d "$last" +%s) )) -lt 2700 ]; then
-            echo "GitHub zamanlayıcısı çalışıyor; zincire gerek yok."
+          latest=$(gh api "repos/$REPO/actions/workflows/build.yml/runs?per_page=1" --jq '.workflow_runs[0].id')
+          if [ "$latest" != "$RUN_ID" ]; then
+            echo "Daha yeni bir çalışma var ($latest); zinciri o sürdürecek."
             exit 0
           fi
           started=$(gh api "repos/$REPO/actions/runs/$RUN_ID" --jq .run_started_at)
