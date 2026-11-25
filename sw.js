@@ -1,5 +1,5 @@
 // Pit Duvari servis calisani: uygulama dosyalari onbellekten, veri once agdan (cevrimdisiyken son kopya).
-const V = 'pd-v3';
+const V = 'pd-v4';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'assets/app.css',
   'assets/js/main.js', 'assets/js/core/util.js', 'assets/js/core/i18n.js', 'assets/js/core/names.js', 'assets/js/core/store.js',

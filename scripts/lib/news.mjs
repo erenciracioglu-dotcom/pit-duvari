@@ -1,4 +1,4 @@
-// Haber akisi: Turkce ve Ingilizce F1 RSS kaynaklari. Yalnizca baslik, kisa ozet ve kaynaga baglanti tutulur.
+// Haber akisi: Turkce ve Ingilizce F1 RSS kaynaklari. Yalnizca baslik, kisa ozet, kaynagin akista verdigi kapak gorselinin adresi ve kaynaga baglanti tutulur.
 import { XMLParser } from 'fast-xml-parser';
 import { http, sha1, log } from './util.mjs';
 
@@ -45,6 +45,31 @@ function normLink(u) {
   }
 }
 
+// Akisin kendi verdigi kapak gorseli: enclosure, media:content, media:thumbnail ya da aciklamadaki ilk <img>
+const IMG_RE = /\.(jpe?g|png|webp|avif)(\?|$)/i;
+function pickImage(it) {
+  const arr = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+  const cands = [];
+  for (const e of arr(it.enclosure)) if (e?.['@url'] && (!e['@type'] || /^image\//.test(e['@type']) || IMG_RE.test(e['@url']))) cands.push(e['@url']);
+  const mc = arr(it['media:content']).filter((m) => m?.['@url'] && (m['@medium'] === 'image' || /^image\//.test(m['@type'] || '') || IMG_RE.test(m['@url'])));
+  mc.sort((a, b) => (Number(b['@width']) || 0) - (Number(a['@width']) || 0));
+  cands.push(...mc.map((m) => m['@url']));
+  for (const g of arr(it['media:group'])) for (const m of arr(g?.['media:content'])) if (m?.['@url']) cands.push(m['@url']);
+  for (const m of arr(it['media:thumbnail'])) if (m?.['@url']) cands.push(m['@url']);
+  const html = decode(text(it['content:encoded']) || text(it.description) || text(it.content) || '');
+  const im = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (im) cands.push(im[1]);
+  for (let u of cands) {
+    u = decode(String(u)).trim();
+    if (u.startsWith('//')) u = 'https:' + u;
+    if (!/^https:\/\//i.test(u)) continue;
+    // BBC kucuk onizleme verir; ayni gorselin genis surumu
+    u = u.replace(/(ichef\.bbci\.co\.uk\/[a-z]+\/standard\/)\d+\//, '$1976/');
+    return u.length <= 600 ? u : null;
+  }
+  return null;
+}
+
 function parseFeed(xml, feed) {
   const p = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@', cdataPropName: false, processEntities: false, trimValues: true });
   const doc = p.parse(xml);
@@ -62,7 +87,8 @@ function parseFeed(xml, feed) {
     if (feed.filter && !feed.filter(link)) continue;
     const desc = clean(text(it.description) || text(it.summary) || text(it['content:encoded']) || text(it.content));
     const when = Date.parse(text(it.pubDate) || text(it.published) || text(it.updated) || text(it['dc:date']));
-    out.push({ id: sha1(link).slice(0, 12), t: title, s: snippet(desc.startsWith(title) ? desc.slice(title.length).trim() : desc), u: link, src: feed.id, lang: feed.lang, ts: isFinite(when) ? when : Date.now() });
+    const img = pickImage(it);
+    out.push({ id: sha1(link).slice(0, 12), t: title, s: snippet(desc.startsWith(title) ? desc.slice(title.length).trim() : desc), u: link, src: feed.id, lang: feed.lang, ts: isFinite(when) ? when : null, ...(img ? { img } : {}) });
   }
   return feed.max ? out.sort((a, b) => b.ts - a.ts).slice(0, feed.max) : out;
 }
@@ -104,6 +130,9 @@ export async function buildNews({ previous = [], ref, lineup = [], now = Date.no
       log('Haber kaynagi alinamadi:', f.id, e.message);
     }
   }));
+  // Tarihsiz akislarda (Formula1.com) haber ilk goruldugu zamani korur; yoksa her taramada en uste cikar
+  const firstSeen = new Map(previous.map((x) => [x.u, x.ts]));
+  for (const it of fresh) if (it.ts == null) it.ts = firstSeen.get(it.u) ?? now;
   const tag = tagger(ref, lineup);
   const seen = new Map();
   const normTitle = (t) => t.toLowerCase().normalize('NFD').replace(/[^\p{L}\p{N} ]/gu, '').replace(/\s+/g, ' ').trim();

@@ -18,7 +18,7 @@ Sunucu ve veritabanı yok. GitHub Actions her 30 dakikada bir `scripts/build.mjs
 | Yeni seansların hızlı sonucu, takım renkleri, yarış hikâyeleri, telemetri | [OpenF1](https://openf1.org) (2023'ten bugüne ücretsiz geçmiş veri) |
 | Pist krokileri | [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) (MIT) |
 | Hava tahmini | [Open-Meteo](https://open-meteo.com) |
-| Haberler | 11 Türkçe ve İngilizce kaynağın RSS akışı (başlık, kısa özet, kaynağa bağlantı) |
+| Haberler | 11 Türkçe ve İngilizce kaynağın RSS akışı (başlık, kısa özet, akıştaki kapak görseli, kaynağa bağlantı) |
 | Lastik seçimi (sıradaki yarış) | Pirelli duyuruları; `assets/tyres.json` dosyasına elle eklenir |
 | 2027 takvimi | FIA / Formula 1 duyurusu (`scripts/static/calendar-2027.json`); seans saatleri açıklanınca otomatik dolar |
 

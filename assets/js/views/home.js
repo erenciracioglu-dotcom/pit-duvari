@@ -40,7 +40,7 @@ export async function render(root, ctx) {
       const cut = spoilerCut(seasons);
       root.appendChild(h('section', { class: 'mt-l' },
         h('div', { class: 'card-h' }, h('h2', { class: 't-h2' }, L('Son haberler', 'Latest news')), h('span', { class: 'sp' }), h('a', { class: 'btn ghost sm', href: '#haberler' }, L('Tüm haberler', 'All news'))),
-        h('div', { class: 'nstrip' }, items.map((it) => newsItem(it, nw.sources, ref, profile, cut)))));
+        h('div', { class: 'nstrip' }, items.map((it) => newsItem(it, nw.sources, ref, profile, cut, { eager: true })))));
     }
   } catch { /* haber yoksa bolum gizli */ }
 
