@@ -4,6 +4,8 @@ Formula 1 takip merkezi: takvim ve geri sayım, 1950'den bugüne tüm sonuçlar,
 
 **Canlı:** https://erenciracioglu-dotcom.github.io/pit-duvari/
 
+Her sayfada Ctrl+K (ya da /) ile pilot, takım, yarış, pist ve sayfalar arasında hızlı arama yapılır.
+
 Telefonda tarayıcının menüsünden "Ana ekrana ekle" ile uygulama gibi kurulur. Profil (favori takım, spoiler kalkanı, tahminler, quiz geçmişi) tarayıcıda saklanır; Profil sayfasından dosya, bağlantı ya da karekodla başka cihaza taşınır.
 
 ## Nasıl çalışır
@@ -17,6 +19,7 @@ Sunucu ve veritabanı yok. GitHub Actions her 30 dakikada bir `scripts/build.mjs
 | Pist krokileri | [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits) (MIT) |
 | Hava tahmini | [Open-Meteo](https://open-meteo.com) |
 | Haberler | 11 Türkçe ve İngilizce kaynağın RSS akışı (başlık, kısa özet, kaynağa bağlantı) |
+| Lastik seçimi (sıradaki yarış) | Pirelli duyuruları; `assets/tyres.json` dosyasına elle eklenir |
 | 2027 takvimi | FIA / Formula 1 duyurusu (`scripts/static/calendar-2027.json`); seans saatleri açıklanınca otomatik dolar |
 
 Canlı, saniye saniye zamanlama ücretli bir veri akışı gerektirdiği için yok; sonuçlar seans bitiminden yaklaşık yarım saat sonra gelir.

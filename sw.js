@@ -1,9 +1,9 @@
 // Pit Duvari servis calisani: uygulama dosyalari onbellekten, veri once agdan (cevrimdisiyken son kopya).
-const V = 'pd-v1';
+const V = 'pd-v2';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'assets/app.css',
   'assets/js/main.js', 'assets/js/core/util.js', 'assets/js/core/i18n.js', 'assets/js/core/names.js', 'assets/js/core/store.js',
-  'assets/js/core/data.js', 'assets/js/core/colors.js', 'assets/js/core/ui.js', 'assets/js/core/charts.js',
+  'assets/js/core/data.js', 'assets/js/core/colors.js', 'assets/js/core/ui.js', 'assets/js/core/charts.js', 'assets/js/core/palette.js',
   'assets/js/views/home.js', 'assets/js/views/common.js', 'assets/js/views/news.js',
   'assets/fonts/archivo-latin-wdth-normal.woff2', 'assets/fonts/archivo-latin-ext-wdth-normal.woff2', 'assets/icons/icon.svg'
 ];

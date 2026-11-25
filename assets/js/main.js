@@ -3,9 +3,10 @@ import { h, clear } from './core/util.js';
 import { L, setLocale, lang } from './core/i18n.js';
 import * as store from './core/store.js';
 import * as data from './core/data.js';
-import { setTeamColors, applyAccent } from './core/colors.js';
+import { setTeamColors, applyAccent, teamColor } from './core/colors.js';
 import { icon, runCleanup, sheet, loading, errorBox, modal, toast } from './core/ui.js';
 import { hideTip } from './core/charts.js';
+import { openPalette, bindPalette } from './core/palette.js';
 
 const VIEWS = {
   pit: () => import('./views/home.js'),
@@ -62,11 +63,13 @@ function shell() {
   clear(root);
   const rail = h('aside', { class: 'rail', 'aria-label': L('Ana menü', 'Main menu') },
     h('a', { class: 'wordmark', href: '#pit', 'aria-label': 'Pit Duvarı' }, 'Pit Duvarı', h('i')),
+    h('button', { class: 'rail-search', type: 'button', onClick: () => openPalette(app.ctx, NAV) }, icon('search'), h('span', {}, L('Ara', 'Search')), h('kbd', {}, 'Ctrl K')),
     h('nav', {}, NAV.map((n) => (n.grp ? h('div', { class: 'grp' }, label(n)) : h('a', { href: `#${n.key}`, 'data-key': n.key }, icon(n.icon), label(n))))),
     h('div', { class: 'foot' }, L('Resmi olmayan hayran projesi. ', 'Unofficial fan project. '), h('a', { href: '#profil' }, L('Veri kaynakları', 'Data sources'))));
   const top = h('header', { class: 'topbar' },
     h('a', { class: 'wordmark', href: '#pit' }, 'Pit Duvarı', h('i')),
     h('span', { class: 'sp' }),
+    h('button', { class: 'iconbtn', type: 'button', 'aria-label': L('Hızlı arama', 'Quick search'), onClick: () => openPalette(app.ctx, NAV) }, icon('search')),
     h('a', { class: 'iconbtn', href: '#profil', 'aria-label': L('Profil ve ayarlar', 'Profile & settings') }, icon('user')));
   const main = h('main', { id: 'view', tabindex: '-1' });
   const tabbar = h('nav', { class: 'tabbar', 'aria-label': L('Alt menü', 'Bottom menu') },
@@ -163,6 +166,17 @@ export function rerender({ keepScroll = true } = {}) {
   route();
 }
 
+// ust serit: guncel takimlarin renkleri, esit dilimler
+function paintStripe() {
+  const teams = [...new Set((app.ctx?.ref.lineup || []).map((x) => x.t))];
+  if (!teams.length) return;
+  const w = 100 / teams.length;
+  const stops = teams.map((t, i) => `${teamColor(t)} ${(i * w).toFixed(2)}% ${((i + 1) * w).toFixed(2)}%`).join(', ');
+  let el = document.querySelector('.team-stripe');
+  if (!el) { el = h('div', { class: 'team-stripe', 'aria-hidden': 'true' }); document.body.appendChild(el); }
+  el.style.setProperty('--stripe', `linear-gradient(90deg, ${stops})`);
+}
+
 async function start() {
   const p = store.load();
   setLocale({ lang: p.lang, tz: p.tz || undefined });
@@ -179,8 +193,10 @@ async function start() {
   }
   setTeamColors(app.ctx.ref.colors);
   applyAccent(p.favTeam);
+  paintStripe();
   store.onChange(() => { afterProfileChange(); });
   window.addEventListener('hashchange', route);
+  bindPalette(() => app.ctx, NAV);
   window.addEventListener('pd:rerender', () => rerender());
   await route();
   if (!p.seen.onboard && !location.hash.startsWith('#profil')) {

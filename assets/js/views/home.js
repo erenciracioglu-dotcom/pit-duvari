@@ -1,6 +1,6 @@
 // Ana sayfa: pit tahtasi geri sayimi, son yaris, sampiyona, favori takim, haberler
 import { h, fmtPts, isTimed } from '../core/util.js';
-import { L, gpName, sessionLabel, fmtTime, fmtDay, driverName, teamName, tzLabel, ordinalTr } from '../core/i18n.js';
+import { L, gpName, sessionLabel, fmtTime, fmtDay, fmtRange, driverName, teamName, tzLabel, ordinalTr } from '../core/i18n.js';
 import * as data from '../core/data.js';
 import { teamColor } from '../core/colors.js';
 import { card, countdown, dchip, tchip, icon, spoiler, spoilerActive, seg, footer, onCleanup } from '../core/ui.js';
@@ -13,8 +13,10 @@ export async function render(root, ctx) {
   const geo = await data.geo().catch(() => ({}));
   const ne = data.nextEvent(seasons, now);
   const last = data.lastRace(seasons);
+  const tyres = await fetch(new URL('../../tyres.json', import.meta.url), { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
 
-  root.appendChild(board(ctx, ne, geo, now));
+  root.appendChild(board(ctx, ne, geo, now, tyres));
+  root.appendChild(kpiStrip(ctx, last, now));
 
   const grid = h('div', { class: 'grid g-7-5' });
   root.appendChild(grid);
@@ -45,7 +47,7 @@ export async function render(root, ctx) {
   root.appendChild(footer(meta));
 }
 
-function board(ctx, ne, geo, now) {
+function board(ctx, ne, geo, now, tyres = {}) {
   const { ref, seasons } = ctx;
   if (!ne) {
     const champ = seasons[0]?.champion;
@@ -71,7 +73,9 @@ function board(ctx, ne, geo, now) {
     h('h1', { class: 't-display gp', style: { marginTop: '14px' } }, gpName(ref, race.gp)),
     h('div', { class: 'circ row wrap' }, circuitLine(ref, race), h('span', { class: 'dim' }, L(`${season.year} sezonu, ${race.r}. yarış (${total} yarışın)`, `${season.year}, round ${race.r} of ${total}`)), race.sprint ? h('span', { class: 'badge' }, 'Sprint') : null),
     raceWhen ? h('div', { class: 'circ' }, raceWhen) : null);
-  const kids = [trackSvg(g, 'track', { glow: true }), info];
+  const kids = [trackSvg(g, 'track', { glow: true, car: true }), info];
+  const tset = tyres[data.raceKey(season.year, race.r)];
+  if (tset?.length) info.appendChild(tyreRow(tset));
   if (!live) kids.push(countdown(target, { onDone: () => window.dispatchEvent(new Event('pd:rerender')) }));
   else kids.push(h('div', { class: 'row wrap', style: { position: 'relative', zIndex: 1 } },
     h('p', { class: 'muted', style: { margin: 0, maxWidth: '52ch' } }, L('Sonuçlar seans bittikten yaklaşık yarım saat sonra burada ve yarış sayfasında görünür.', 'Results appear here and on the race page about half an hour after the session ends.'))));
@@ -84,6 +88,57 @@ function board(ctx, ne, geo, now) {
   // canli seans bitince yenile
   if (live) { const t = setTimeout(() => window.dispatchEvent(new Event('pd:rerender')), Math.max(5000, session.end - now + 1000)); onCleanup(() => clearTimeout(t)); }
   return b;
+}
+
+// ---- Pirelli lastik secimi (assets/tyres.json) ----
+function tyreRow(set) {
+  const roles = [['hard', L('Sert', 'Hard')], ['medium', L('Orta', 'Medium')], ['soft', L('Yumuşak', 'Soft')]];
+  return h('div', { class: 'tyres', title: L('Pirelli’nin bu yarış için seçtiği lastikler', 'Pirelli’s compound choice for this race') },
+    h('span', { class: 'dim' }, L('Lastikler', 'Tyres')),
+    set.slice(0, 3).map((c, i) => h('span', { class: ['tchip-t', roles[i][0]] }, h('i'), h('b', {}, c), ' ', roles[i][1])));
+}
+
+// ---- ozet kartlari: lider, takimlar, son kazanan, Istanbul ----
+function kpiStrip(ctx, last, now) {
+  const { ref, seasons } = ctx;
+  const { season, st, hidden } = visibleStandings(ctx, last);
+  const cards = [];
+  const kpi = (href, label, big, sub, color) => h('a', { class: 'kpi', href, style: color ? { '--k': color } : null },
+    h('span', { class: 'k-l' }, label), h('span', { class: 'k-v' }, big), sub ? h('span', { class: 'k-s' }, sub) : null);
+
+  const [d1, d2] = st.d;
+  if (d1) {
+    const t = data.teamOf(season, d1[0]);
+    const champ = season.champion?.d === d1[0];
+    cards.push(kpi(`#surucu/${d1[0]}`, champ ? L(`${season.year} şampiyonu`, `${season.year} champion`) : L('Pilotlarda lider', 'Drivers’ leader'),
+      driverName(ref, d1[0]), d2 ? L(`${fmtPts(d1[2])} puan, ${driverName(ref, d2[0], 'last')} ${fmtPts(d1[2] - d2[2])} geride`, `${fmtPts(d1[2])} pts, ${fmtPts(d1[2] - d2[2])} clear of ${driverName(ref, d2[0], 'last')}`) : `${fmtPts(d1[2])} ${L('puan', 'pts')}`, teamColor(t)));
+  }
+  const [c1, c2] = st.c;
+  if (c1) cards.push(kpi(`#takim/${c1[0]}`, L('Takımlarda lider', 'Constructors’ leader'), teamName(ref, c1[0]),
+    c2 ? L(`${fmtPts(c1[2])} puan, ${teamName(ref, c2[0])} ${fmtPts(c1[2] - c2[2])} geride`, `${fmtPts(c1[2])} pts, ${fmtPts(c1[2] - c2[2])} ahead of ${teamName(ref, c2[0])}`) : null, teamColor(c1[0])));
+
+  if (last) {
+    const { race, season: ls } = last;
+    const w = race.res?.[0];
+    const href = raceHref(ls.year, race.r);
+    if (hidden || !w) cards.push(kpi(href, L(`Son yarış: ${gpName(ref, race.gp)}`, `Last race: ${gpName(ref, race.gp)}`), L('Gizli', 'Hidden'), L('Spoiler kalkanı açık', 'Spoiler shield is on')));
+    else {
+      const pod = race.res.slice(1, 3).map((x) => driverName(ref, x.d, 'last')).join(', ');
+      cards.push(kpi(href, L(`Son yarış: ${gpName(ref, race.gp)}`, `Last race: ${gpName(ref, race.gp)}`), driverName(ref, w.d), pod ? L(`Podyum: ${pod}`, `Podium: ${pod}`) : null, teamColor(w.t)));
+    }
+  }
+
+  // Istanbul Park: takvimde varsa geri sayim
+  for (const S of seasons) {
+    const tr = S?.races.find((r) => r.gp === 'turkey' && !r.res?.length);
+    if (!tr) continue;
+    const start = Date.parse((tr.start || tr.date) + 'T00:00:00Z');
+    const days = Math.ceil((start - now) / 86400000);
+    if (days > 0) cards.push(kpi(raceHref(S.year, tr.r), L('İstanbul Park dönüyor', 'Istanbul Park returns'),
+      L(`${days} gün`, `${days} days`), L(`${S.year} Türkiye GP, ${fmtRange(tr.start, tr.date)}`, `${S.year} Turkish GP, ${fmtRange(tr.start, tr.date)}`), '#E30A17'));
+    break;
+  }
+  return h('section', { class: 'kpis', 'aria-label': L('Özet', 'Summary') }, cards);
 }
 
 function lastRaceCard(ctx, last) {

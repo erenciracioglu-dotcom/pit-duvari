@@ -37,11 +37,19 @@ export function gained(x) {
   return h('span', { class: ['num', d > 0 ? 'pb' : 'bad'] }, d > 0 ? `▲${d}` : `▼${-d}`);
 }
 
-export function trackSvg(g, cls, { glow = false } = {}) {
+let trackSeq = 0;
+export function trackSvg(g, cls, { glow = false, car = false } = {}) {
   if (!g) return null;
   const pad = 40;
+  const id = `trk${++trackSeq}`;
+  // car: pistin uzerinde tur atan nokta (hareket azaltma tercihinde CSS ile gizlenir)
+  const r = Math.max(g.w, g.h) * 0.022;
+  const dot = car ? s('g', { class: 'car' },
+    s('circle', { class: 'car-halo', r: r * 2.4 }),
+    s('circle', { class: 'car-dot', r }),
+    s('animateMotion', { dur: '11s', repeatCount: 'indefinite', rotate: 'auto' }, s('mpath', { href: `#${id}` }))) : null;
   return s('svg', { class: cls, viewBox: `${-pad} ${-pad} ${g.w + 2 * pad} ${g.h + 2 * pad}`, preserveAspectRatio: 'xMidYMid meet', 'aria-hidden': 'true' },
-    glow ? s('path', { class: 'glow', d: g.d }) : null, s('path', { d: g.d }));
+    glow ? s('path', { class: 'glow', d: g.d }) : null, s('path', { id, d: g.d }), dot);
 }
 
 export function raceTitle(ref, race) {
