@@ -1,4 +1,5 @@
 // Pit Duvari: uygulama kabugu, yonlendirme, acilis.
+import { countView } from './core/stats.js';
 import { h, clear } from './core/util.js';
 import { L, setLocale, lang } from './core/i18n.js';
 import * as store from './core/store.js';
@@ -120,6 +121,7 @@ async function route() {
     sessionStorage.removeItem('pd:keepScroll');
     const title = root.querySelector('h1')?.textContent;
     document.title = title && key !== 'pit' ? `${title} · Pit Duvarı` : 'Pit Duvarı · F1 takip merkezi';
+    countView(VIEWS[key] ? key : 'pit', VIEWS[key] ? params : []);
   } catch (e) {
     console.error(e);
     if (my !== app.token) return;
